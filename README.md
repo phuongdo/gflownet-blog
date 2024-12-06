@@ -1,23 +1,45 @@
 # Building an Online Recommendation with Generative Flow Networks (GFN)
 
 
-### Why this blog?
+## Why this blog?
 
-I have been working for years on recommendation systems (AdNetwork-VCC, content recommendation system - CocCoc, and a mobile app). All the questions come to me:
+I have spent several years working on recommendation systems, including AdNetwork-VCC, a content recommendation system for CocCoc.  Throughout this experience, I frequently encounter critical questions, such as:
 
-- How do we build a system that can generate diverse and high-quality recommendations for users?
-- How do we balance exploration and exploitation in online recommendations? 
-- And the final question is, how do we engage users to make them addicted to the system (like TikTok, YouTube, Netflix)?
+- How can we build a system that generates diverse and high-quality recommendations for users?
+- How do we effectively balance exploration and exploitation in online recommendations?
+- How can we utilize feedback data to enhance recommendation quality and make people more engaged with the platform?
 
-While working as a researcher at Torilab (a Japanese tech company based in Hanoi), I had the opportunity to research graph-based recommendations. This is largely based on the theory implemented from the GitHub repository (GFN4Rec - https://github.com/CharlieMat/GFN4Rec). They showed that the GFN can generate diverse and high-quality recommendations for users. However, the implementation is quite complex, and a lot of people have difficulty understanding the basic concepts of the GFN.
-and I want to share the basic concepts of the GFN and how to build an online recommendation system using the GFN.
+While working as a researcher at Torilab (a Japanese tech company based in Hanoi) I had the chance to work with graph-based recommendations and was particularly impressed by the solutions outlined in the GitHub repository GFN4Rec (https://github.com/CharlieMat/GFN4Rec). The GFN demonstrates the potential to generate diverse and high-quality recommendations through a robust feedback loop system. However, its implementation can be complex, causing challenges for many who struggle with its foundational concepts.
 
-### Introduction
-
-Recommender systems are ubiquitous in digital ecosystems, from e-commerce platforms to content streaming services. Traditional recommendation approaches often focus on static policies, but Generative Flow Networks (GFN) provide a novel paradigm for modeling the sequential dynamics of user interactions. In this blog, we’ll explore the use of trained policies (e.g., SlateGFN_DB) for building an online recommendation prototype. I'll cover key components like data environment setup, policy training, agent updates, and feedback loops, all while illustrating the process with visual aids, including github code repository.
+I aim to simplify these concepts and share insights on how to effectively build an online recommendation system utilizing GFN.
 
 
-In this blogs I will cover the following topics:
+## Introduction
+
+Recommender systems are ubiquitous in digital ecosystems, from e-commerce platforms to content streaming services. Traditional recommendation approaches often focus on static policies, but Generative Flow Networks (GFN) provide a novel paradigm for modeling the sequential dynamics of user interactions.
+
+In this blog, we’ll explore the use of trained policies (e.g., SlateGFN_DB) for building an online recommendation prototype. I'll cover key components like data environment setup, policy training, agent updates, and feedback loops, all while illustrating the process with visual aids, including github code repository. I generated the sample data set for user profiles, item features, and interaction history to train the recommendation policy. The system are trying to optimize the click rewards. 
+
+
+
+This diagram shows the interaction flow between the user, data environment, policy, and recommendation agent:
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Environment as Data Environment
+    participant Policy as SlateGFN_DB Policy
+    participant Agent as Recommendation Agent
+    
+    User->>Environment: Interact with items
+    Environment->>Policy: Feedback data
+    Policy->>Agent: Generate recommendation slates
+    Agent->>Environment: Collect reward signals
+    Environment->>Policy: Update policy weights
+```
+
+
+This our blog post outline:
 
 1. What is a Generative Flow Network (GFN)?
 2. Data Environment for Training
@@ -28,7 +50,7 @@ In this blogs I will cover the following topics:
 
 
 
-### What is a Generative Flow Network (GFN)?
+## What is a Generative Flow Network (GFN)?
 
 Generative Flow Networks (https://yoshuabengio.org/2022/03/05/generative-flow-networks/) are probabilistic models designed to generate diverse, sequential structures. They excel in scenarios where multiple outcomes need to be explored, such as recommending a slate of items to a user. Unlike traditional policies, GFNs allow us to generate sequences with a balance between exploration and exploitation, making them ideal for online recommendation systems.
 
@@ -60,7 +82,7 @@ graph TD
     G --> C
 ```
 
-Give example of User Profile and Item Pool: 
+From above diagram, you can see  User Profile and Item Pool: 
 1. User Profile: Demographic data, preferences, and historical interactions.
 2. Item Pool: Attributes of items (e.g., product categories, tags, ratings).
 
@@ -70,7 +92,7 @@ Our goal is to generate slates of items that balance user preferences with novel
 1. Exploitation Items: High-probability recommendations based on known user preferences. 
 2. Exploration Items: Low-probability recommendations to explore new interests. 
 
-Example of Exploration and Exploitation item data: 
+This is the example output of the SlateGFN_DB policy: 
 ```
 Rank	Item	Type	Reason
 1	Running Shoes	Exploitation	Known fitness interest.
@@ -79,10 +101,11 @@ Rank	Item	Type	Reason
 ```
 
 
+Next, I will explain how to build an online recommendation system using GFN step by step.
 
-### How to Build an Online Recommendation with GFN
+## How to Build an Online Recommendation with GFN
 
-#### Step 1: Data Environment for Training
+### Step 1: Data Environment for Training
 
 To build a robust recommendation prototype, we need a well-defined data environment:
 
@@ -100,9 +123,7 @@ graph TD
 ```
 
 
-
-
-In this blog, I will generate synthetic data for user profiles, item features, and interaction history to train the recommendation policy. The code for generating the data is available in the repository.
+Here, I will generate synthetic data for user profiles, item features, and interaction history to train the recommendation policy. The code for generating the data is available in the repository.
 
 1. Daily Recommendations simulate recommendations for users over a timeline.
 2. Session-Based Interactions allow us to model multiple touchpoints in a single user session.
@@ -165,7 +186,7 @@ item_features_tensor = torch.tensor(item_features_df.drop('item_id', axis=1).val
 
 
 
-#### Step 2: Training the Policy
+### Step 2: Training the Policy
 
 To train the recommendation agent:
 1.  SlateGFN_DB generates recommendation slates for users.
@@ -177,22 +198,11 @@ The GFN policy learns to generate diverse and high-quality recommendations by:
 2.	Exploiting known user preferences.
 
 
-```mermaid
-sequenceDiagram
-    actor User
-    participant Environment as Data Environment
-    participant Policy as SlateGFN_DB Policy
-    participant Agent as Recommendation Agent
-    
-    User->>Environment: Interact with items
-    Environment->>Policy: Feedback data
-    Policy->>Agent: Generate recommendation slates
-    Agent->>Environment: Collect reward signals
-    Environment->>Policy: Update policy weights
-```
 
 
-Design the SlateGFN_DB network ( the code you can find in the repository) to generate slates of items for users. The network learns to balance exploration and exploitation, ensuring that recommendations are both diverse and relevant. The training process involves:
+Design the SlateGFN_DB network ( the code you can find in the repository) to generate slates of items for users. The network learns to balance exploration and exploitation, ensuring that recommendations are both diverse and relevant. 
+
+This is the architecture of the SlateGFN_DB policy network:
 
 ```mermaid
 
@@ -290,7 +300,7 @@ Epoch 5/5, Loss: 0.0454
 ```
 
 
-### Step 3: Policy Deployment and Online Updates
+## Step 3: Policy Deployment and Online Updates
 
 Once trained, the policy operates in an online setting, generating recommendations in real-time:
 1.	User Selection: Select a subset of active users for recommendations.
@@ -345,7 +355,7 @@ User History Clicks: [0 0 0 1 0 0 0 0 0 0]
 
 
 
-#### Step 4: Agent Update in Online Recommendations
+### Step 4: Agent Update in Online Recommendations
 
 
 1. Exploration: The agent tests new item combinations to identify novel preferences.
@@ -403,7 +413,7 @@ User History Clicks: [0 0 0 0 0 0 0 0 0 0]
 
 
 
-### Conclusion
+## Conclusion
 
 This prototype demonstrates how Generative Flow Networks can revolutionize online recommendation systems by combining sequential interaction modeling, exploration of diverse outcomes, and adaptive policies. Using a trained policy like SlateGFN_DB, you can build a scalable and robust recommendation engine for real-world applications.
 
