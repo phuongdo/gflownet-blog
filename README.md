@@ -197,14 +197,14 @@ Design the SlateGFN_DB network ( the code you can find in the repository) to gen
 ```mermaid
 graph TD
     subgraph Input Layer
-        A1[User State (state_dim)] --> A2[History Items (max_history_length)]
-        A3[Is Clicks (max_history_length)] --> A2
+        A1[User State <state_dim>] --> A2[History Items <max_history_length>]
+        A3[Is Clicks <max_history_length>] --> A2
     end
 
     subgraph History Encoding
-        A2 --> B1[Item Embedding Layer<br>(num_items + 1, enc_dim)]
-        B1 --> B2[Weighted Embeddings<br>(enc_dim x max_history_length)]
-        B2 --> B3[Summed Embedding<br>(enc_dim)]
+        A2 --> B1[Item Embedding Layer<br><num_items + 1, enc_dim>]
+        B1 --> B2[Weighted Embeddings<br><enc_dim x max_history_length>]
+        B2 --> B3[Summed Embedding<br><enc_dim>]
     end
 
     subgraph State Update
@@ -212,27 +212,27 @@ graph TD
     end
 
     subgraph Recommendation Generator
-        C1 --> D1[Forward Probability Network<br>Linear(state_dim + enc_dim * slate_size -> 128)]
+        C1 --> D1[Forward Probability Network<br>Linear<state_dim + enc_dim * slate_size -> 128>]
         D1 --> D2[ReLU Activation]
-        D2 --> D3[Linear(128 -> enc_dim)]
-        D3 --> D4[LayerNorm(enc_dim)]
+        D2 --> D3[Linear<128 -> enc_dim>]
+        D3 --> D4[LayerNorm<enc_dim>]
 
-        D1 --> F1[Flow Network<br>Linear(state_dim + enc_dim * slate_size -> 128)]
+        D1 --> F1[Flow Network<br>Linear<state_dim + enc_dim * slate_size -> 128>]
         F1 --> F2[ReLU Activation]
-        F2 --> F3[Linear(128 -> 1)]
+        F2 --> F3[Linear<128 -> 1>]
     end
 
     subgraph Slate Construction
         D4 --> G1[Compute Selection Weights]
-        G1 --> G2[Softmax<br>(Score -> Probabilities)]
+        G1 --> G2[Softmax<br><Score -> Probabilities>]
         G2 --> H1[Update Current Slate Embeddings]
         H1 --> F3
     end
 
     subgraph Outputs
-        F3 --> I1[Log Flow (logF)]
-        G2 --> I2[Action Probabilities (Prob)]
-        H1 --> I3[Selected Actions (Action)]
+        F3 --> I1[Log Flow <logF>]
+        G2 --> I2[Action Probabilities <Prob>]
+        H1 --> I3[Selected Actions <Action>]
     end
 ```
 
