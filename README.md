@@ -41,8 +41,8 @@ graph TD
     B --> C
 
     subgraph Slate Generation
-        C --> D1[Exploitation Items<br>(Known Preferences)]
-        C --> D2[Exploration Items<br>(New/Unexplored Items)]
+        C --> D1[Exploitation Items<br><Known Preferences>]
+        C --> D2[Exploration Items<br><New/Unexplored Items>]
     end
 
     subgraph User Interaction
