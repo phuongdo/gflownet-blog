@@ -3,12 +3,18 @@
 
 ### Why this blog?
 
-recommendation system - CocCoc, and a mobile app). All the questions come to me: How do we build a system that can generate diverse and high-quality recommendations for users? How do we balance exploration and exploitation in online recommendations? And the final question is, how do we engage users to make them addicted to the system (like TikTok, YouTube, Netflix)?
-While working as a researcher at Torilab (a Japanese tech company based in Hanoi), I had the opportunity to research graph-based recommendations. This is largely based on the theory implemented from the GitHub repository (GFN4Rec - https://github.com/CharlieMat/GFN4Rec), and I want to share the basic concepts of the GFN and how to build an online recommendation system using the GFN.
+I have been working for years on recommendation systems (AdNetwork-VCC, content recommendation system - CocCoc, and a mobile app). All the questions come to me:
+
+- How do we build a system that can generate diverse and high-quality recommendations for users?
+- How do we balance exploration and exploitation in online recommendations? 
+- And the final question is, how do we engage users to make them addicted to the system (like TikTok, YouTube, Netflix)?
+
+While working as a researcher at Torilab (a Japanese tech company based in Hanoi), I had the opportunity to research graph-based recommendations. This is largely based on the theory implemented from the GitHub repository (GFN4Rec - https://github.com/CharlieMat/GFN4Rec). They showed that the GFN can generate diverse and high-quality recommendations for users. However, the implementation is quite complex, and a lot of people have difficulty understanding the basic concepts of the GFN.
+and I want to share the basic concepts of the GFN and how to build an online recommendation system using the GFN.
 
 ### Introduction
 
-Recommender systems are ubiquitous in digital ecosystems, from e-commerce platforms to content streaming services. Traditional recommendation approaches often focus on static policies, but Generative Flow Networks (GFN) provide a novel paradigm for modeling the sequential dynamics of user interactions. In this blog, we’ll explore the use of trained policies (e.g., SlateGFN_DB) for building an online recommendation prototype. We’ll cover key components like data environment setup, policy training, agent updates, and feedback loops, all while illustrating the process with visual aids, including github code repository.
+Recommender systems are ubiquitous in digital ecosystems, from e-commerce platforms to content streaming services. Traditional recommendation approaches often focus on static policies, but Generative Flow Networks (GFN) provide a novel paradigm for modeling the sequential dynamics of user interactions. In this blog, we’ll explore the use of trained policies (e.g., SlateGFN_DB) for building an online recommendation prototype. I'll cover key components like data environment setup, policy training, agent updates, and feedback loops, all while illustrating the process with visual aids, including github code repository.
 
 
 In this blogs I will cover the following topics:
@@ -26,7 +32,33 @@ In this blogs I will cover the following topics:
 
 Generative Flow Networks (https://yoshuabengio.org/2022/03/05/generative-flow-networks/) are probabilistic models designed to generate diverse, sequential structures. They excel in scenarios where multiple outcomes need to be explored, such as recommending a slate of items to a user. Unlike traditional policies, GFNs allow us to generate sequences with a balance between exploration and exploitation, making them ideal for online recommendation systems.
 
-![alt text](image-6.png)
+```mermaid
+graph TD
+    A[User Profile]
+    B[Item Pool]
+    C[Generate Recommendation Slate]
+    A --> C
+    B --> C
+
+    subgraph Slate Generation
+        C --> D1[Exploitation Items<br>(Known Preferences)]
+        C --> D2[Exploration Items<br>(New/Unexplored Items)]
+    end
+
+    subgraph User Interaction
+        D1 --> E1[User Selects Favorite Items]
+        D2 --> E2[User Tries New Items]
+    end
+
+    subgraph Feedback Loop
+        E1 --> F1[Update Known Preferences]
+        E2 --> F2[Discover New Preferences]
+        F1 --> G[Policy Update]
+        F2 --> G
+    end
+
+    G --> C
+```
 
 Give example of User Profile and Item Pool: 
 1. User Profile: Demographic data, preferences, and historical interactions.
@@ -58,8 +90,6 @@ To build a robust recommendation prototype, we need a well-defined data environm
 2.	Item Features: Attributes of items (e.g., product categories, tags, ratings).
 3.	Interaction History: Historical data capturing user interactions with items (e.g., clicks, purchases, ratings).
 
-
-![alt text](image.png)
 
 ```mermaid
 graph TD
@@ -131,7 +161,7 @@ user_features_tensor = torch.tensor(user_profiles_df.drop('user_id', axis=1).val
 item_ids_tensor = torch.tensor(item_features_df['item_id'].values, dtype=torch.long)
 item_features_tensor = torch.tensor(item_features_df.drop('item_id', axis=1).values, dtype=torch.float)
 ```
-![alt text](image-5.png)
+![alt text](images/image-5.png)
 
 
 
@@ -146,9 +176,6 @@ The GFN policy learns to generate diverse and high-quality recommendations by:
 1.	Exploring diverse item combinations.
 2.	Exploiting known user preferences.
 
-
-
-![alt text](image-1.png)    
 
 ```mermaid
 sequenceDiagram
@@ -167,7 +194,47 @@ sequenceDiagram
 
 Design the SlateGFN_DB network ( the code you can find in the repository) to generate slates of items for users. The network learns to balance exploration and exploitation, ensuring that recommendations are both diverse and relevant. The training process involves:
 
-![alt text](image-4.png)
+```mermaid
+graph TD
+    subgraph Input Layer
+        A1[User State (state_dim)] --> A2[History Items (max_history_length)]
+        A3[Is Clicks (max_history_length)] --> A2
+    end
+
+    subgraph History Encoding
+        A2 --> B1[Item Embedding Layer<br>(num_items + 1, enc_dim)]
+        B1 --> B2[Weighted Embeddings<br>(enc_dim x max_history_length)]
+        B2 --> B3[Summed Embedding<br>(enc_dim)]
+    end
+
+    subgraph State Update
+        B3 --> C1[Concatenate<br>User State + History Embedding<br>(state_dim + enc_dim)]
+    end
+
+    subgraph Recommendation Generator
+        C1 --> D1[Forward Probability Network<br>Linear(state_dim + enc_dim * slate_size -> 128)]
+        D1 --> D2[ReLU Activation]
+        D2 --> D3[Linear(128 -> enc_dim)]
+        D3 --> D4[LayerNorm(enc_dim)]
+
+        D1 --> F1[Flow Network<br>Linear(state_dim + enc_dim * slate_size -> 128)]
+        F1 --> F2[ReLU Activation]
+        F2 --> F3[Linear(128 -> 1)]
+    end
+
+    subgraph Slate Construction
+        D4 --> G1[Compute Selection Weights]
+        G1 --> G2[Softmax<br>(Score -> Probabilities)]
+        G2 --> H1[Update Current Slate Embeddings]
+        H1 --> F3
+    end
+
+    subgraph Outputs
+        F3 --> I1[Log Flow (logF)]
+        G2 --> I2[Action Probabilities (Prob)]
+        H1 --> I3[Selected Actions (Action)]
+    end
+```
 
 Train the policy using the following steps:
 ```python
@@ -210,7 +277,15 @@ for epoch in range(num_epochs):
     avg_loss = epoch_loss / num_batches
     print(f"Epoch {epoch + 1}/{num_epochs}, Loss: {avg_loss:.4f}")
 ```
-
+```
+/tmp/ipykernel_1581922/2984395016.py:44: UserWarning: Creating a tensor from a list of numpy.ndarrays is extremely slow. Please consider converting the list to a single numpy.ndarray with numpy.array() before converting to a tensor. (Triggered internally at /opt/conda/conda-bld/pytorch_1724788959220/work/torch/csrc/utils/tensor_new.cpp:278.)
+  history_items_tensor = torch.tensor([h[0] for h in user_histories], dtype=torch.long).to(self.device)
+Epoch 1/5, Loss: 0.0814
+Epoch 2/5, Loss: 0.0554
+Epoch 3/5, Loss: 0.0496
+Epoch 4/5, Loss: 0.0472
+Epoch 5/5, Loss: 0.0454
+```
 
 
 ### Step 3: Policy Deployment and Online Updates
@@ -221,7 +296,6 @@ Once trained, the policy operates in an online setting, generating recommendatio
 3.	Simulated Feedback: Gather feedback (e.g., clicks, purchases) to simulate user interactions.
 4.	Policy Updates: Continuously update the policy using feedback data.
 
-![alt text](image-2.png)
 ```maermaid
 graph LR
     User[User Interactions] -->|Clicks, Purchases| Feedback[Simulated Feedback]
@@ -239,7 +313,12 @@ graph LR
 # •	The simple_policy function recommends items that the user has interacted with but did not click.
 # •	If there are not enough such items, it fills the slate with random items not in the user’s history.
 # •	This policy aims to re-engage users with items they showed interest in but did not click on.
-simulate_with_policy(env, num_steps=2, batch_size=2)  
+simulate_with_policy(env, num_steps=2, batch_size=2) 
+
+
+OUTPUT:
+
+>>>
 
 Interaction History:
    user_id  item_id  interaction  is_click
@@ -281,7 +360,6 @@ The agent learns iteratively:
 3. Update the GFN policy.( call optimize function)
 
 
-![alt text](image-7.png)
 
 
 ```python
@@ -297,7 +375,8 @@ env = DataEnvironment(user_features_tensor, item_features_tensor, interaction_hi
 # Run the real-time simulation
 simulate_user_arrivals(env, total_duration, average_interarrival_time)
 
-
+OUTPUT: 
+>>> 
 User ID: 29
 Recommended Slate: [32 27 20 42 50]
 Reward: 0.40
@@ -317,9 +396,6 @@ User History Items: [32  0  0  0  0  0  0  0  0  0]
 User History Clicks: [0 0 0 0 0 0 0 0 0 0]
 ------------------------------
 ```
-
-
-
 
 
 
