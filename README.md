@@ -195,6 +195,7 @@ sequenceDiagram
 Design the SlateGFN_DB network ( the code you can find in the repository) to generate slates of items for users. The network learns to balance exploration and exploitation, ensuring that recommendations are both diverse and relevant. The training process involves:
 
 ```mermaid
+
 graph TD
     subgraph Input Layer
         A1[User State <state_dim>] --> A2[History Items <max_history_length>]
@@ -208,7 +209,7 @@ graph TD
     end
 
     subgraph State Update
-        B3 --> C1[Concatenate<br>User State + History Embedding<br>(state_dim + enc_dim)]
+        B3 --> C1[Concatenate<br>User State + History Embedding<br><state_dim + enc_dim>]
     end
 
     subgraph Recommendation Generator
@@ -278,6 +279,7 @@ for epoch in range(num_epochs):
     print(f"Epoch {epoch + 1}/{num_epochs}, Loss: {avg_loss:.4f}")
 ```
 ```
+OUTPUT:
 /tmp/ipykernel_1581922/2984395016.py:44: UserWarning: Creating a tensor from a list of numpy.ndarrays is extremely slow. Please consider converting the list to a single numpy.ndarray with numpy.array() before converting to a tensor. (Triggered internally at /opt/conda/conda-bld/pytorch_1724788959220/work/torch/csrc/utils/tensor_new.cpp:278.)
   history_items_tensor = torch.tensor([h[0] for h in user_histories], dtype=torch.long).to(self.device)
 Epoch 1/5, Loss: 0.0814
@@ -314,12 +316,10 @@ graph LR
 # •	If there are not enough such items, it fills the slate with random items not in the user’s history.
 # •	This policy aims to re-engage users with items they showed interest in but did not click on.
 simulate_with_policy(env, num_steps=2, batch_size=2) 
+```
 
-
+```
 OUTPUT:
-
->>>
-
 Interaction History:
    user_id  item_id  interaction  is_click
 0        0       14            1         1
@@ -375,8 +375,10 @@ env = DataEnvironment(user_features_tensor, item_features_tensor, interaction_hi
 # Run the real-time simulation
 simulate_user_arrivals(env, total_duration, average_interarrival_time)
 
+```
+
+```
 OUTPUT: 
->>> 
 User ID: 29
 Recommended Slate: [32 27 20 42 50]
 Reward: 0.40
