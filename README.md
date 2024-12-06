@@ -9,9 +9,7 @@ I have spent several years working on recommendation systems, including AdNetwor
 - How do we effectively balance exploration and exploitation in online recommendations?
 - How can we utilize feedback data to enhance recommendation quality and make people more engaged with the platform?
 
-While working as a researcher at Torilab (a Japanese tech company based in Hanoi) I had the chance to work with graph-based recommendations and was particularly impressed by the solutions outlined in the GitHub repository GFN4Rec (https://github.com/CharlieMat/GFN4Rec). The GFN demonstrates the potential to generate diverse and high-quality recommendations through a robust feedback loop system. However, its implementation can be complex, causing challenges for many who struggle with its foundational concepts.
-
-I aim to simplify these concepts and share insights on how to effectively build an online recommendation system utilizing GFN.
+While working as a researcher at Torilab (a Japanese tech company based in Hanoi) I had the chance to work with graph-based recommendations and was particularly impressed by the solutions outlined in the GitHub repository GFN4Rec (https://github.com/CharlieMat/GFN4Rec). The GFN demonstrates the potential to generate diverse and high-quality recommendations through a robust feedback loop system. However, its implementation can be complex, causing challenges for many who struggle with its foundational concepts. So, I aim to simplify these concepts and share insights on how to effectively build an online recommendation system utilizing GFN.
 
 
 ## Introduction
